@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';// new modules. intall it 
+import helmet from 'helmet';// this one too install before run 
 import connectDB from './config/connectDB.js';
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -11,7 +13,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 const app = express();
-
+app.use(cors());// initialization for cors
+app.use(helmet());// intialization for security 
 // Webhook must be raw
 app.use('/api/commitment/webhook', express.raw({ type: 'application/json' }));
 
@@ -26,6 +29,16 @@ app.use("/api/commitment", commitmentRoutes);
 app.use("/api/orders", orderRoutes); // new
 app.use("/api/wallet", walletRoutes);
 app.use("/api/admin", adminRoutes);
+
+//404 handler
+app.use((req, res). => 
+        {res.status(404).json({message: "Route not found"});
+});
+//Global error handler
+app.use((err,req,res ,next) => {
+  console.error(err.stack);
+  res.status(500).json({message: "Server Error"});
+});
 
 
 const startserver = async () => {
