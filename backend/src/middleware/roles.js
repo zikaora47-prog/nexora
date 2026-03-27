@@ -1,20 +1,25 @@
-export const requireAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Admin access required" });
-  }
-  next();
+export const requireRole = (role) => {
+  return (req, res, next) => {
+
+    // Check authentication
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Authentication required"
+      });
+    }
+
+    // Check role
+    if (req.user.role !== role) {
+      return res.status(403).json({
+        message: `${role} access required`
+      });
+    }
+
+    next();
+  };
 };
 
-export const requireVendor = (req, res, next) => {
-  if (req.user.role !== "vendor") {
-    return res.status(403).json({ message: "Vendor access required" });
-  }
-  next();
-};
-
-export const requireCreator = (req, res, next) => {
-  if (req.user.role !== "creator") {
-    return res.status(403).json({ message: "Creator access required" });
-  }
-  next();
-};
+// Specific role middleware
+export const requireAdmin = requireRole("admin");
+export const requireVendor = requireRole("vendor");
+export const requireCreator = requireRole("creator");
