@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const withdrawalSchema = new mongoose.Schema(
@@ -9,15 +10,16 @@ const withdrawalSchema = new mongoose.Schema(
       index: true
     },
     amount: {
-      type: Number,
+      type: mongoose.Types.Decimal128, // safer than Number
       required: true,
-      min: 0
+      min: 0,
+      immutable: true
     },
     bankDetails: {
       bankName: { type: String, required: true },
-      accountNumber: { type: String, required: true },
+      accountNumber: { type: String, required: true }, // encrypt in production
       accountName: { type: String, required: true },
-      ifscCode: { type: String } // optional, for international
+      ifscCode: { type: String } 
     },
     status: {
       type: String,
@@ -26,17 +28,20 @@ const withdrawalSchema = new mongoose.Schema(
     },
     processedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User" // admin who processed
+      ref: "User" 
     },
     processedAt: Date,
     rejectionReason: String,
-    transactionReference: String, // from payment gateway if we pay out
+    transactionReference: { type: String, unique: true, sparse: true },
     metadata: {
-      userRoleAtRequest: String, // store role (creator/vendor)
-      previousBalance: Number // snapshot before withdrawal
+      userRoleAtRequest: String,
+      previousBalance: mongoose.Types.Decimal128
     }
   },
   { timestamps: true }
 );
+
+// Index for queries by user and status
+withdrawalSchema.index({ userId: 1, status: 1 });
 
 export default mongoose.model("Withdrawal", withdrawalSchema);
